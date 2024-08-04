@@ -1,14 +1,44 @@
 package org.llama;
 
+import java.io.IOException;
+import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
 
 public class Tokenizer implements AutoCloseable {
-    private static boolean loadNativeLibrary(Path path) {
+    private static boolean loadNativeLibrary(Path path){
 		if (!Files.exists(path)) {
-			return false;
+            try {
+                String nativeLibraryFilePath = "/lib/" + path.toFile().getName();
+                String tmpDir = System.getProperty("java.io.tmpdir");
+                Path extractedFilePath = Path.of(tmpDir, path.toFile().getName());
+
+                // Extract a native library file into the target directory
+                try (InputStream reader = Tokenizer.class.getResourceAsStream(nativeLibraryFilePath)) {
+                    if (reader == null) {
+                        return false;
+                    }
+                    Files.copy(reader, extractedFilePath, StandardCopyOption.REPLACE_EXISTING);
+                } catch (IOException e){
+                    e.printStackTrace();
+
+                }
+                finally {
+                    // Delete the extracted lib file on JVM exit.
+                    extractedFilePath.toFile().deleteOnExit();
+                }
+
+			    System.load("D:/" + path.toFile().getName());
+                return true;
+            } catch (UnsatisfiedLinkError e){
+                e.printStackTrace();
+
+                return false;
+            }
 		}
+
 		String absolutePath = path.toAbsolutePath().toString();
 		try {
 			System.load(absolutePath);
@@ -16,13 +46,20 @@ public class Tokenizer implements AutoCloseable {
 		}
 		catch (UnsatisfiedLinkError e) {
 			e.printStackTrace();
-			return false;
+
+            return false;
 		}
 	}
 
     private static void loadLibrary(){
-        Path path = Path.of("./src/main/resources/lib/tokenizerllama.dll");
+
+        Path path = Path.of("./src/main/resources/lib/ggml.dll");
         loadNativeLibrary(path);
+        path = Path.of("./src/main/resources/lib/llama.dll");
+        loadNativeLibrary(path);
+        path = Path.of("./src/main/resources/lib/tokenizerllama.dll");
+        loadNativeLibrary(path);
+
     }
 
     static {

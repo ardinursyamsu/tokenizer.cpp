@@ -31,6 +31,6 @@ target_include_directories(tokenizerllama PRIVATE src/cpp ${JNI_INCLUDE_DIRS} ${
 target_link_libraries(tokenizerllama PRIVATE common llama)
 target_compile_features(tokenizerllama PRIVATE cxx_std_11)
 
-set_target_properties(tokenizerllama PROPERTIES
+set_target_properties(tokenizerllama llama ggml PROPERTIES
     RUNTIME_OUTPUT_DIRECTORY_RELEASE ${TKNLLAMA_DIR}
 )

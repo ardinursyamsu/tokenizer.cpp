@@ -6,7 +6,16 @@ cmake -B build
 cmake --build build --config Release -j
 ```
 
-### add dll searchpath
+### compile java via maven
 ```
-$env:PATH+='D:\useful_ai_project\java\tokenizer_llama_cpp\build\bin\Release\'
+mvn clean install package
+```
+
+### add package to pom.xml file in you maven project
+```
+<dependency>
+    <groupId>org.llama</groupId>
+    <artifactId>tokenizer</artifactId>
+    <version>1.0.0</version>
+</dependency>
 ```
