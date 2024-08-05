@@ -1,7 +1,8 @@
+#include <iostream>
 #include "org_llama_Tokenizer.h"
 #include "common.h"
 #include "llama.h"
-#include <iostream>
+#include "ggml.h"
 
 jfieldID f_model_pointer = nullptr;
 
@@ -9,6 +10,7 @@ struct llama_tokenizer
 {
     llama_model * model;
     llama_context * ctx;
+    bool add_bos = false;
 };
 
 static void llama_log_callback_null(ggml_log_level level, const char * text, void * user_data) {
@@ -112,8 +114,15 @@ JNIEXPORT jintArray JNICALL Java_org_llama_Tokenizer_tokenize(JNIEnv *env, jobje
     const bool parse_special = !no_parse_special;
 
     const std::string prompt = jstring2string(env, jprompt);
-    std::vector<llama_token> tokens = ::llama_tokenize(tok->model, prompt, add_bos, parse_special);
 
+    // TODO: add option to enable/disable this
+    std::vector<llama_token> tokens;
+    if (tok->add_bos){
+        tokens = ::llama_tokenize(tok->model, prompt, add_bos, parse_special);
+    } else {
+        tokens = ::llama_tokenize(tok->model, prompt, 0, 0);
+    }
+    
     jsize token_size = tokens.size(); // NOLINT(*-narrowing-conversions)
 
     jintArray java_tokens = env->NewIntArray(token_size);

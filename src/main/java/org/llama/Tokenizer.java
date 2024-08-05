@@ -1,5 +1,6 @@
 package org.llama;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
@@ -11,8 +12,14 @@ public class Tokenizer implements AutoCloseable {
     private static boolean loadNativeLibrary(Path path){
 		if (!Files.exists(path)) {
             try {
-                String nativeLibraryFilePath = "/lib/" + path.toFile().getName();
-                String tmpDir = System.getProperty("java.io.tmpdir");
+                String nativeLibraryFilePath = "/lib/" + path.toFile().getName(); // this is library file located if run from .jar
+
+                // we now create temp directory to put the libs
+                String tmpDir = System.getProperty("java.io.tmpdir") + "/lib/"; // don't collide with java-llama.cpp
+                File tmpFolder = new File(tmpDir);
+                if (!tmpFolder.exists()){
+                    tmpFolder.mkdirs();
+                }
                 Path extractedFilePath = Path.of(tmpDir, path.toFile().getName());
 
                 // Extract a native library file into the target directory
@@ -30,7 +37,7 @@ public class Tokenizer implements AutoCloseable {
                     extractedFilePath.toFile().deleteOnExit();
                 }
 
-			    System.load("D:/" + path.toFile().getName());
+			    System.load(extractedFilePath.toString());
                 return true;
             } catch (UnsatisfiedLinkError e){
                 e.printStackTrace();
